@@ -12,3 +12,5 @@ Aplikasi ini dapat mengambil data dari MYSQL menggunakan syntax php, dan aplikas
 ---
 
 # Fitur Aplikasi
+- Dapat menampilkan Daftar User
+- Mengautentikasi API agar tidak mudah digunakan oleh orang asing
