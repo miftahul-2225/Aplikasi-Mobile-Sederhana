@@ -13,6 +13,7 @@
         </ion-card-header>
 
         <ion-card-content>
+          <!-- Input Nama -->
           <ion-item>
             <ion-input
               label="Nama"
@@ -22,6 +23,7 @@
             ></ion-input>
           </ion-item>
 
+          <!-- Input Password -->
           <ion-item>
             <ion-input
               label="Password"
@@ -32,10 +34,23 @@
             ></ion-input>
           </ion-item>
 
+          <!-- 🔒 Input Token Rahasia -->
+          <ion-item>
+            <ion-input
+              label="Token Rahasia"
+              label-placement="floating"
+              type="password"
+              v-model="token"
+              placeholder="Masukkan token rahasia"
+            ></ion-input>
+          </ion-item>
+
+          <!-- Tombol Login -->
           <ion-button expand="block" @click="loginUser" class="ion-margin-top">
             Login
           </ion-button>
 
+          <!-- Pesan Error -->
           <ion-text color="danger" v-if="errorMessage">
             <p>{{ errorMessage }}</p>
           </ion-text>
@@ -58,13 +73,14 @@ import axios from "axios";
 const router = useRouter();
 const nama = ref("");
 const password = ref("");
+const token = ref(""); // 🔒 Tambahkan state untuk token
 const errorMessage = ref("");
 
-const API_URL = "http://localhost/myApp/server/login.php"; 
+const API_URL = "http://localhost/myApp/server/login.php";
 
 const loginUser = async () => {
-  if (!nama.value || !password.value) {
-    errorMessage.value = "Nama dan password wajib diisi.";
+  if (!nama.value || !password.value || !token.value) {
+    errorMessage.value = "Nama, password, dan token wajib diisi.";
     return;
   }
 
@@ -72,16 +88,18 @@ const loginUser = async () => {
     const res = await axios.post(API_URL, {
       nama: nama.value,
       password: password.value,
+      token: token.value, // 🔒 Kirim token ke backend
     });
 
     if (res.data.status === "success") {
-      // Simpan data user ke localStorage
+      // Simpan data user dan token ke localStorage
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("session_token", res.data.user.session_token);
 
       // Arahkan ke dashboard (tab4)
       router.push("/tabs/tab4");
     } else {
-      errorMessage.value = res.data.message || "Login gagal, periksa kembali nama dan password Anda.";
+      errorMessage.value = res.data.message || "Login gagal, periksa kembali data Anda.";
     }
   } catch (err) {
     console.error(err);
