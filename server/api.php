@@ -1,17 +1,44 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
+header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, X-API-TOKEN, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
+
+// ✅ Jika preflight request (OPTIONS), langsung izinkan tanpa token
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 require_once "config.php";
 
+
+// ===========================================================
+// 🔒 VALIDASI TOKEN API
+// ===========================================================
+$SECRET_TOKEN = "supertoken123"; // ubah ke token rahasiamu sendiri
+
+// Ambil semua header
+$headers = getallheaders();
+
+// Ambil token dari header
+$clientToken = isset($headers['X-API-TOKEN']) ? $headers['X-API-TOKEN'] : '';
+
+if ($clientToken !== $SECRET_TOKEN) {
+    http_response_code(401);
+    echo json_encode(["error" => "Hayyo! Akses ditolak. Token Anda tidak valid, Pikirkan Secara Logika."]);
+    exit();
+}
+
+// ===========================================================
 // Fungsi untuk membaca input JSON
+// ===========================================================
 function getInput() {
     $data = file_get_contents("php://input");
     return json_decode($data, true);
 }
 
+// Tangani preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -57,7 +84,6 @@ switch ($method) {
         $password = trim($input['password'] ?? '');
 
         if (!empty($nama) && !empty($email) && !empty($password)) {
-            // Hash password sebelum disimpan
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             $stmt = $conn->prepare("INSERT INTO users (nama, email, password) VALUES (?, ?, ?)");
@@ -128,7 +154,9 @@ switch ($method) {
         }
         break;
 
-   
+    // ===========================================================
+    // 🚫 DEFAULT HANDLER
+    // ===========================================================
     default:
         echo json_encode(["error" => "Metode tidak didukung"]);
         break;
